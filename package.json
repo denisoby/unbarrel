@@ -1,0 +1,29 @@
+{
+  "name": "unbarrel",
+  "version": "1.0.0",
+  "description": "Converting libraries index file with exports from barrel style to flatten one",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/denisoby/unbarrel.git"
+  },
+  "keywords": [
+    "barrel",
+    "library",
+    "exports",
+    "angular",
+    "ng-packagr"
+  ],
+  "author": "Denis Obydennykh",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/denisoby/unbarrel/issues"
+  },
+  "homepage": "https://github.com/denisoby/unbarrel#readme",
+  "dependencies": {
+    "yargs-parser": "^13.1.0"
+  }
+}
