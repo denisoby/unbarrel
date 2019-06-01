@@ -23,11 +23,9 @@ function unbarrelAll(fileOrDirectory: string) {
 
     const importIndex: SourceFile = project.getSourceFileOrThrow('/Users/dobydennykh/dev/unbarrel/tests/importing/index.ts');
 
-    const declarationsToBarrels: ImportDeclaration[] = [];
-
     delimiter();
 
-    importIndex.getImportDeclaration((importDeclaration: ImportDeclaration) => {
+    const declarationsToBarrels = importIndex.getImportDeclarations().filter((importDeclaration: ImportDeclaration) => {
 
         const moduleSpecifierSource = importDeclaration.getModuleSpecifierSourceFile()
 
@@ -51,8 +49,7 @@ function unbarrelAll(fileOrDirectory: string) {
         if (moduleSpecifierSourcePath && (barrelsMap[moduleSpecifierSourcePath + '.ts'] ||
             barrelsMap[moduleSpecifierSourcePath + '/index.ts'])) {
             console.log('THIS IS BARREL! :)');
-
-            declarationsToBarrels.push(importDeclaration);
+            return true;
         }
         return false;
     });
@@ -94,7 +91,6 @@ function exportsVisitor(sourceFile: SourceFile): boolean {
 
     if (barrel.isBarrel()) {
         barrelsMap[filePath] = barrel;
-        // console.log("project.removeSourceFile(sourceFile);", sourceFile.getFilePath());
         sourceFile.delete()
     }
 
