@@ -3,6 +3,11 @@ import * as path from "path";
 import {Barrel} from "./barrel.class";
 
 let project: Project;
+
+function delimiter(delimiterStr = '-'): void {
+    console.log((new Array(60)).join(delimiterStr));
+}
+
 function unbarrelAll(fileOrDirectory: string) {
     project = new Project();
     project.addExistingSourceFiles(fileOrDirectory);
@@ -12,34 +17,65 @@ function unbarrelAll(fileOrDirectory: string) {
     //     return false;
     // });
     project.getSourceFile(exportsVisitor);
+    // project.saveSync();
+
     // project.getSourceFile(importsVisitor);
 
     const importIndex: SourceFile = project.getSourceFileOrThrow('/Users/dobydennykh/dev/unbarrel/tests/importing/index.ts');
-    const importLiterals = importIndex.getImportStringLiterals();
-    console.log(importLiterals.map(i => i.getLiteralValue()));
 
     const declarationsToBarrels: ImportDeclaration[] = [];
 
-    importIndex.getImportDeclaration((importDeclaration: ImportDeclaration) => {
-        const moduleSpecifierSource = importDeclaration.getModuleSpecifierSourceFile()
-        const moduleSpecifierSourcePath = moduleSpecifierSource && moduleSpecifierSource.getFilePath();
+    delimiter();
 
-        if (moduleSpecifierSourcePath && barrelsMap[moduleSpecifierSourcePath]) {
+    importIndex.getImportDeclaration((importDeclaration: ImportDeclaration) => {
+
+        const moduleSpecifierSource = importDeclaration.getModuleSpecifierSourceFile()
+
+
+        let moduleSpecifierSourcePath;
+
+        if (moduleSpecifierSource) {
+            moduleSpecifierSourcePath = moduleSpecifierSource && moduleSpecifierSource.getFilePath();
+        }
+        else {
+            const moduleValue = importDeclaration.getModuleSpecifierValue();
+            if (['.', '/'].indexOf(moduleValue[0]) > -1) {
+                moduleSpecifierSourcePath = path.resolve(importIndex.getDirectoryPath(), moduleValue);
+            }
+        }
+
+
+        console.log('IMPORTED: ', moduleSpecifierSourcePath, importDeclaration.getModuleSpecifierValue());
+
+
+        if (moduleSpecifierSourcePath && (barrelsMap[moduleSpecifierSourcePath + '.ts'] ||
+            barrelsMap[moduleSpecifierSourcePath + '/index.ts'])) {
+            console.log('THIS IS BARREL! :)');
+
             declarationsToBarrels.push(importDeclaration);
         }
         return false;
     });
 
    if(declarationsToBarrels.length) {
-       declarationsToBarrels.forEach((declaration: ImportDeclaration) => declaration.remove());
+       declarationsToBarrels.forEach((declaration: ImportDeclaration) => {
+           console.log('declaration: ', declaration.getModuleSpecifierValue());
+           declaration.remove();
+       });
+       delimiter();
        importIndex.fixMissingImports();
-       importIndex.saveSync();
+       // importIndex.saveSync();
    }
 
-    let directory = importIndex.getDirectoryPath();
-    console.log(directory);
-    console.log(path.resolve(directory, '../some-path/file'));
+    console.log(importIndex.getFullText());
 
+    // project.saveSync();
+
+    // project = new Project();
+    // project.addExistingSourceFiles(fileOrDirectory);
+    // const importIndexFixed: SourceFile = project.getSourceFileOrThrow('/Users/dobydennykh/dev/unbarrel/tests/importing/index.ts');
+    // importIndexFixed.fixMissingImports();
+    // importIndexFixed.saveSync();
 
     // importIndex.fixMissingImports();
     // importIndex.saveSync();
@@ -54,12 +90,12 @@ const barrelsMap: {[name: string]: Barrel} = {};
 function exportsVisitor(sourceFile: SourceFile): boolean {
     const barrel = new Barrel(sourceFile);
     let filePath = sourceFile.getFilePath();
-    // console.log(filePath, barrel.isBarrel());
+    console.log('FOUND BARREL: ', filePath);
 
     if (barrel.isBarrel()) {
         barrelsMap[filePath] = barrel;
-        console.log("project.removeSourceFile(sourceFile);", sourceFile.getFilePath());
-        project.removeSourceFile(sourceFile);
+        // console.log("project.removeSourceFile(sourceFile);", sourceFile.getFilePath());
+        sourceFile.delete()
     }
 
     // todo handle somewhere
