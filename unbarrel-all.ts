@@ -30,11 +30,14 @@ const barrelsMap: { [name: string]: Barrel } = {};
 function exportsVisitor(sourceFile: SourceFile): boolean {
   const barrel = new Barrel(sourceFile);
   let filePath = sourceFile.getFilePath();
-  console.log("FOUND BARREL: ", filePath);
 
   if (barrel.isBarrel()) {
+    console.log("FOUND BARREL: ", filePath);
     barrelsMap[filePath] = barrel;
     sourceFile.delete();
+  }
+  else {
+    console.log('Checking exports: ', sourceFile.getFilePath());
   }
 
   // todo handle somewhere
@@ -59,7 +62,8 @@ function isBarrelImport(directoryPath: string) {
     } else {
       const moduleValue = importDeclaration.getModuleSpecifierValue();
       if ([".", "/"].indexOf(moduleValue[0]) > -1) {
-        moduleSpecifierSourcePath = path.resolve(directoryPath, moduleValue);
+        moduleSpecifierSourcePath = path.resolve(directoryPath, moduleValue)
+            .replace(/\\/g, '/');
       }
     }
 
@@ -78,6 +82,8 @@ function isBarrelImport(directoryPath: string) {
 }
 
 function importsVisitor(sourceFile: SourceFile): boolean {
+  console.log('Checking imports: ', sourceFile.getFilePath());
+
   let importVerifier = isBarrelImport(sourceFile.getDirectoryPath());
   const declarationsToBarrels = sourceFile
     .getImportDeclarations()
