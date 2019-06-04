@@ -144,12 +144,16 @@ function importsVisitor(sourceFile: SourceFile): boolean {
           .getExportedDeclarations()
           .filter(value => (value as any).getName() === importName)[0];
 
-        let directImportPath = path
-          .relative(
-            sourceFile.getDirectoryPath(),
-            exportSymbol.getSourceFile().getFilePath()
-          )
-          .replace(/\.ts$/, "");
+        let directImportPath =
+          "./" +
+          path
+            .relative(
+              sourceFile.getDirectoryPath(),
+              exportSymbol.getSourceFile().getFilePath()
+            )
+            // fix Window's slashes
+            .replace(/\\/g, "/")
+            .replace(/\.ts$/, "");
 
         sourceFile.addImportDeclaration({
           namedImports: [importName],
